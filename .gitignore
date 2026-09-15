@@ -1,0 +1,15 @@
+# Terraform specific
+.terraform/
+*.tfstate
+*.tfstate.backup
+.terraform.lock.hcl
+*.tfvars
+
+# Python / Environment specific
+.env
+.env.secret
+__pycache__/
+*.pyc
+
+# Databricks specific
+.databricks/
