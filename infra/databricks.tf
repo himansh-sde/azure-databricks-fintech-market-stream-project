@@ -4,7 +4,7 @@ resource "azurerm_databricks_workspace" "workspace" {
   name                = "dbw-${var.project_name}-${var.environment}"
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
-  sku                 = "standard"
+  sku                 = "premium"
 }
 
 # Creates a Managed Identity for Databricks to access ADLS securely
