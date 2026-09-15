@@ -168,24 +168,39 @@ terraform {
       source  = "hashicorp/azurerm"
       version = "~> 3.90"
     }
+    random = {
+      source  = "hashicorp/random"
+      version = "~> 3.6"
+    }
   }
 }
 
 provider "azurerm" {
   features {}
 }
+
+
 Open variables.tf in your text editor and paste this code:
 
 Terraform
 variable "project_name" {
-  type    = string
-  default = "marketstream"
+  type        = string
+  default     = "marketstream"
+  description = "Base name used for resource naming"
+}
+
+variable "location" {
+  type        = string
+  default     = "eastus"
+  description = "Azure Region for all resources"
 }
 
 variable "environment" {
-  type    = string
-  default = "dev"
+  type        = string
+  default     = "dev"
+  description = "Deployment environment (dev/stage/prod)"
 }
+
 Save both files.
 
 Step 9: Committing and Pushing Code to GitHub
