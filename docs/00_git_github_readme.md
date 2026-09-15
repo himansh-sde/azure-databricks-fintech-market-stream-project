@@ -223,5 +223,46 @@ git push -u origin main
 Authentication Note:
 The very first time you run git push, a pop-up window or terminal prompt will ask you to log into GitHub. Follow the prompts to authorize your account via your web browser.
 
+
+🚨 Error Log & Resolution: Git Push Rejected
+The Error
+When running git push -u origin main, the terminal throws the following rejection:
+
+Plaintext
+ ! [rejected]        main -> main (fetch first)
+error: failed to push some refs to '[https://github.com/](https://github.com/)...
+hint: Updates were rejected because the remote contains work that you do not
+hint: have locally. This is usually caused by another repository pushing to
+hint: the same ref.
+The Cause
+Git blocks the push because the remote GitHub repository contains files (often a README.md or .gitignore added via the GitHub web UI) that your local computer does not have. Pushing immediately would overwrite and delete the cloud files.
+
+The Resolution
+You must download (pull) the cloud updates, merge them with your local code, and then push them back together.
+
+Step 1: Pull and Rebase
+This command downloads the cloud files and smoothly layers your local files on top of them:
+
+Bash
+git pull origin main --rebase
+(Note: If Git throws a "refusing to merge unrelated histories" error, force the merge using: git pull origin main --allow-unrelated-histories --no-edit)
+
+Step 2: Push the Merged State
+Once the local machine is synchronized with the cloud, push the updates successfully:
+
+Bash
+git push -u origin main
+
+***
+
+### 3. Save and Push Your New Documentation
+
+Now that you have created the `docs` folder and saved this runbook, commit it to GitHub so your remote repository stays up to date:
+
+```bash
+git add docs/
+git commit -m "docs: add phase 1 git setup runbook"
+git push
+
 🎉 Congratulations!
 Go refresh your page on GitHub.com. You should now see your folders, your .gitignore file, and your Terraform code sitting safely in the cloud. You are officially ready to deploy Azure infrastructure!
