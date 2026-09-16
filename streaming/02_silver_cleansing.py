@@ -1,20 +1,29 @@
-# streaming/02_silver_cleansing.py
 # Databricks notebook source
+# streaming/02_silver_cleansing.py
 
 # COMMAND ----------
+
 # MAGIC %md
 # MAGIC # Silver Layer: Cleansing & Deduplication
 # MAGIC **Objective:** Parse JSON, enforce schema, drop duplicates, and filter malformed records.
 
 # COMMAND ----------
+
 from pyspark.sql.functions import col, from_json, expr
 from pyspark.sql.types import StructType, StructField, StringType, DoubleType, IntegerType, TimestampType
 
 # Define ADLS Gen2 Paths
-STORAGE_ACCOUNT = "stmarketstreamdevxxxxx"
+STORAGE_ACCOUNT = "stmarketstreamdevq40qg"
 BRONZE_PATH = f"abfss://bronze@{STORAGE_ACCOUNT}.dfs.core.windows.net/trades"
 SILVER_PATH = f"abfss://silver@{STORAGE_ACCOUNT}.dfs.core.windows.net/trades_cleaned"
 CHECKPOINT_PATH = f"abfss://checkpoints@{STORAGE_ACCOUNT}.dfs.core.windows.net/silver_trades"
+
+# ADLS Authentication Block
+STORAGE_KEY = dbutils.secrets.get(scope="market-scope", key="storage-acct-key")
+spark.conf.set(
+    f"fs.azure.account.key.{STORAGE_ACCOUNT}.dfs.core.windows.net",
+    STORAGE_KEY
+)
 
 # Define the expected JSON schema
 trade_schema = StructType([
@@ -27,17 +36,21 @@ trade_schema = StructType([
 ])
 
 # COMMAND ----------
+
 # MAGIC %md
 # MAGIC ### 1. Read Bronze Stream
 
 # COMMAND ----------
+
 bronze_stream_df = spark.readStream.format("delta").load(BRONZE_PATH)
 
 # COMMAND ----------
+
 # MAGIC %md
 # MAGIC ### 2. Parse and Clean Data
 
 # COMMAND ----------
+
 # The data in Bronze is a binary column named "value". 
 # We cast it to string, then parse it using our schema.
 parsed_df = (
@@ -60,10 +73,12 @@ deduped_df = (
 )
 
 # COMMAND ----------
+
 # MAGIC %md
 # MAGIC ### 3. Write to Silver
 
 # COMMAND ----------
+
 silver_query = (
     deduped_df.writeStream
     .format("delta")

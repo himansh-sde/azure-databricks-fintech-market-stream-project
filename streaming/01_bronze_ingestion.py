@@ -1,33 +1,43 @@
-# streaming/01_bronze_ingestion.py
 # Databricks notebook source
+# streaming/01_bronze_ingestion.py
 
 # COMMAND ----------
+
 # MAGIC %md
 # MAGIC # Bronze Layer: Raw Event Hubs Ingestion
 # MAGIC **Objective:** Stream raw Kafka/Event Hubs bytes into a Delta table on ADLS Gen2.
 
 # COMMAND ----------
+
 import urllib
 
-# We grab the connection string (In Databricks, we'd use Secret Scopes, but we'll mock it here for the portfolio)
-# For a production setup, NEVER hardcode this. 
+# 1. Event Hubs Configuration
 EVENTHUB_CONNECTION_STRING = dbutils.secrets.get(scope="market-scope", key="eh-conn-string")
 EVENTHUB_TOPIC = "market-trades"
-EVENTHUB_NAMESPACE = "eh-marketstream-dev-xxxxx.servicebus.windows.net"
+EVENTHUB_NAMESPACE = "eh-marketstream-dev-q40qg.servicebus.windows.net"
 
-# Construct the Kafka connection details required by PySpark
+# Added "kafkashaded." back to THIS LINE:
 EH_SASL = f'kafkashaded.org.apache.kafka.common.security.plain.PlainLoginModule required username="$ConnectionString" password="{EVENTHUB_CONNECTION_STRING}";'
 
-# Define ADLS Gen2 Paths (These match our Terraform storage.tf)
-STORAGE_ACCOUNT = "stmarketstreamdevxxxxx"
+# 2. Storage Account Configuration
+STORAGE_ACCOUNT = "stmarketstreamdevq40qg"
 BRONZE_PATH = f"abfss://bronze@{STORAGE_ACCOUNT}.dfs.core.windows.net/trades"
 CHECKPOINT_PATH = f"abfss://checkpoints@{STORAGE_ACCOUNT}.dfs.core.windows.net/bronze_trades"
 
+# 3. ADLS Authentication Block
+STORAGE_KEY = dbutils.secrets.get(scope="market-scope", key="storage-acct-key")
+spark.conf.set(
+    f"fs.azure.account.key.{STORAGE_ACCOUNT}.dfs.core.windows.net",
+    STORAGE_KEY
+)
+
 # COMMAND ----------
+
 # MAGIC %md
 # MAGIC ### 1. Read the Stream
 
 # COMMAND ----------
+
 # Configure the Kafka source
 raw_stream_df = (
     spark.readStream.format("kafka")
@@ -43,10 +53,12 @@ raw_stream_df = (
 )
 
 # COMMAND ----------
+
 # MAGIC %md
 # MAGIC ### 2. Write to Bronze (Append Only)
 
 # COMMAND ----------
+
 # Write the raw bytes, headers, and metadata to a Delta table
 bronze_query = (
     raw_stream_df.writeStream
