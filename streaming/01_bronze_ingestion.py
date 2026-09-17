@@ -41,6 +41,7 @@ spark.conf.set(
 # Configure the Kafka source
 raw_stream_df = (
     spark.readStream.format("kafka")
+    .option("failOnDataLoss", "false")
     .option("kafka.bootstrap.servers", f"{EVENTHUB_NAMESPACE}:9093")
     .option("subscribe", EVENTHUB_TOPIC)
     .option("kafka.sasl.mechanism", "PLAIN")
