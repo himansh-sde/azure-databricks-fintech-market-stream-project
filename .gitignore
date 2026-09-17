@@ -18,3 +18,4 @@ _.terraform_old/
 *.tfstate*
 *.old
 terraform.tfstate.tf
+*.lock.hcl*
