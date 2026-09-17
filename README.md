@@ -5,7 +5,7 @@ A production-grade, real-time streaming data pipeline processing financial marke
 
 The architecture is governed by strict enterprise security standards (Azure Key Vault, RBAC, Managed Identities) and deployed via Infrastructure as Code (Terraform) to ensure scalable, cost-aware cloud operations.
 
-![Cloud Infrastructure](stream_rg_azure.png)
+![Cloud Infrastructure](images/stream_rg_azure.png)
 *Azure Resource Group deployed via Terraform containing the complete pipeline infrastructure.*
 
 ### Key Business Value
@@ -47,10 +47,10 @@ This phase involved building the core streaming engine in Databricks and resolvi
 2.  **Silver Layer (Cleansing):** Applied explicit schema enforcement, unpacked JSON payloads, handled late-arriving data using `.withWatermark("timestamp", "5 minutes")`, and dropped duplicate `trade_id` events.
 3.  **Gold Layer (Aggregation):** Executed a stateful aggregation using `.window("timestamp", "1 minute")` to calculate the real-time VWAP, grouped by stock ticker.
 
-![Bronze Streaming Metrics](Bronze_write_stream.png)
+![Bronze Streaming Metrics](images/Bronze_write_stream.png)
 *Bronze Layer actively ingesting raw JSON bytes from Azure Event Hubs.*
 
-![Silver Streaming Metrics](Silver_write_stream.png)
+![Silver Streaming Metrics](images/Silver_write_stream.png)
 *Silver Layer processing micro-batches, enforcing schema, and applying watermarks.*
 
 ### Enterprise Security & Troubleshooting Log
@@ -62,10 +62,10 @@ This pipeline was built to pass stringent security reviews. Implementing this re
 *   **Kafka Network Routing & SAS Token Scopes:** The ingestion stream suffered from repeated TCP node disconnects (`TimeoutException`). I diagnosed this as an Event Hubs authorization drop. I created a dedicated `consumer-listen-policy` (least privilege), updated the Key Vault, and force-restarted the Databricks cluster to clear the 48-hour secret cache.
 *   **Delta Lake Streaming Constraints (Error 0AKDC):** The Gold stream crashed due to Delta Lake lacking native support for `.outputMode("update")` on aggregations. I refactored the logic to `.outputMode("complete")` and isolated a fresh checkpoint directory to continuously overwrite the dashboard state without corruption.
 
-![Key Vault Secrets](Azure_key_vault_stream.png)
+![Key Vault Secrets](images/Azure_key_vault_stream.png)
 *Azure Key Vault securing the Event Hubs connection string and ADLS Storage Account keys.*
 
-![IAM Role Assignment](ADLSGen2_storage_IAM_config_stream.png)
+![IAM Role Assignment](images/ADLSGen2_storage_IAM_config_stream.png)
 *RBAC implementation assigning Storage Blob Data Contributor to the Databricks Managed Identity.*
 
 ---
@@ -75,7 +75,7 @@ This pipeline was built to pass stringent security reviews. Implementing this re
 ### 1. Business Value Delivery
 To prove the pipeline's effectiveness, I queried the live Gold Delta table and utilized Databricks' built-in visualization engine to generate a real-time tracking dashboard for the calculated VWAP metrics.
 
-![Real-Time Dashboard](gold_layer_visualization.png)
+![Real-Time Dashboard](images/gold_layer_visualization.png)
 *The Gold Layer live dashboard calculating 1-minute tumbling window VWAP across multiple tickers.*
 
 ### 2. FinOps & Teardown
