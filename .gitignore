@@ -13,3 +13,7 @@ __pycache__/
 
 # Databricks specific
 .databricks/
+.terraform/
+_.terraform_old/
+*.tfstate*
+*.old
